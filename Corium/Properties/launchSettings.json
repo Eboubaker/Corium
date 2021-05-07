@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Corium": {
+      "commandName": "Project",
+      "commandLineArgs": "hide -i \"E:\\Applications installers\" -d \"C:\\Games\" -o output"
+    }
+  }
+}

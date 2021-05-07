@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "pCHh3vc2bUH++HuMaXXCm/52KHUBSdjUkuWAvf7CbV6Ru6hLR22NRzGfMos/KbzHf4pdVZE1+j2yATurzV973A==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\me\\source\\repos\\Corium\\Corium\\Corium.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\me\\.nuget\\packages\\commandlineparser\\2.8.0\\commandlineparser.2.8.0.nupkg.sha512",
+    "C:\\Users\\me\\.nuget\\packages\\microsoft.csharp\\4.4.1\\microsoft.csharp.4.4.1.nupkg.sha512",
+    "C:\\Users\\me\\.nuget\\packages\\system.commandline\\2.0.0-beta1.21216.1\\system.commandline.2.0.0-beta1.21216.1.nupkg.sha512",
+    "C:\\Users\\me\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512"
+  ],
+  "logs": []
+}
