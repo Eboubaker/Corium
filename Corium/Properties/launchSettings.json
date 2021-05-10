@@ -2,7 +2,7 @@
   "profiles": {
     "Corium": {
       "commandName": "Project",
-      "commandLineArgs": "hide -i \"E:\\Applications installers\" -d \"C:\\Games\" -o output"
+      "commandLineArgs": "hide -v -i \"D:\\restored\\memes\" -d \"C:\\Users\\me\\Desktop\\input.txt\" -o output -b 3"
     }
   }
 }

@@ -26,4 +26,9 @@ C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\ru\System.Command
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\tr\System.CommandLine.resources.dll
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\zh-Hans\System.CommandLine.resources.dll
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\zh-Hant\System.CommandLine.resources.dll
+C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\Microsoft.Win32.SystemEvents.dll
+C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\System.Drawing.Common.dll
+C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll
+C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
 C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.csproj.CoreCompileInputs.cache

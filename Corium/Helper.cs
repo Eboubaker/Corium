@@ -3,42 +3,37 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
+using System.Drawing;
+using System.IO.Compression;
 
 namespace Corium
 {
     class Helper
     {
-        public static readonly List<string> ImageExtensions = new List<string> { ".JPG", ".JPE", ".BMP", ".TIF", "JFIF", ".PNG" };
-        public static List<string> FilterImages(List<string> files)
+        public static void CopyDirectory(DirectoryInfo source, DirectoryInfo target)
         {
-            return files.FindAll(file =>
-            {
-                if(Directory.Exists(file))
-                {
-                    return false;
-                }
-                if(!File.Exists(file))
-                {
-                    return false;
-                }
-                return ImageExtensions.Contains(Path.GetExtension(file).ToUpper());
-            });
+            foreach (DirectoryInfo dir in source.GetDirectories())
+                CopyDirectory(dir, target.CreateSubdirectory(dir.Name));
+            foreach (FileInfo file in source.GetFiles())
+                file.CopyTo(Path.Combine(target.FullName, file.Name));
         }
-        public static List<string> GetFiles(string path)
+        public static IEnumerable<T> FastReverse<T>(IList<T> items)
         {
-            var list = new List<string>();
-            if (Directory.Exists(path))
+            for (int i = items.Count - 1; i >= 0; i--)
             {
-                list.AddRange(Directory.GetFiles(path));
-                foreach (var p in Directory.GetDirectories(path))
-                {
-                    list.AddRange(GetFiles(p));
-                }
-            }else if(File.Exists(path))
-            {
-                list.Add(path);
+                yield return items[i];
             }
-            return list;
+        }
+
+        public static string HumanReadableBytes(long byteCount)
+        {
+            string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+            if (byteCount == 0)
+                return "0" + suf[0];
+            long bytes = Math.Abs(byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
     }
 }
