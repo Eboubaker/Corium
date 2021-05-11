@@ -19,7 +19,7 @@ namespace Corium
             var image = Image.FromFile(file.FullName);
 
             PixelCount = Size.Width * Size.Height;
-            Capacity = PixelCount * (3 + ProgramOptions.Alpha) * ProgramOptions.BitsUsage / 8;
+            Capacity = PixelCount * ProgramOptions.ChannelCount * ProgramOptions.BitsUsage / 8;
             if (Capacity < Steganography.ImageHeaderSize + 1)
                 throw new IndexOutOfRangeException("Image is too small");
 
