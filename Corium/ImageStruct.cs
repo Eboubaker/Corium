@@ -17,7 +17,7 @@ namespace Corium
         {
             
             var image = Image.FromFile(file.FullName);
-
+            Size = image.Size;
             PixelCount = Size.Width * Size.Height;
             Capacity = PixelCount * ProgramOptions.ChannelCount * ProgramOptions.BitsUsage / 8;
             if (Capacity < Steganography.ImageHeaderSize + 1)
