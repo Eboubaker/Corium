@@ -1,8 +1,12 @@
 {
   "profiles": {
-    "Corium": {
+    "Hide": {
       "commandName": "Project",
-      "commandLineArgs": "hide -v -i \"D:\\restored\\memes\" -d \"C:\\Users\\me\\Desktop\\input.txt\" -o output -b 3"
+      "commandLineArgs": "hide -v -i \"D:\\restored\\memes\" -d \"C:\\Users\\me\\Desktop\\input.txt\" -o output -b 8 -c 2"
+    },
+    "Extract": {
+      "commandName": "Project",
+      "commandLineArgs": "extract -v -i \"output\" -o output -a -b 3 -c 2"
     }
   }
 }

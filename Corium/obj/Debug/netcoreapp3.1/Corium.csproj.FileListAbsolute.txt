@@ -1,5 +1,4 @@
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\Corium.exe
-C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.csprojAssemblyReference.cache
 C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.AssemblyInfoInputs.cache
 C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.AssemblyInfo.cs
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\Corium.deps.json
@@ -8,7 +7,6 @@ C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\Corium.runtimecon
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\Corium.dll
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\Corium.pdb
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\CommandLine.dll
-C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.csproj.CopyComplete
 C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.dll
 C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.pdb
 C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.genruntimeconfig.cache
@@ -32,3 +30,5 @@ C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\runtimes\win\lib\
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll
 C:\Users\me\source\repos\Corium\Corium\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
 C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.csproj.CoreCompileInputs.cache
+C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.csproj.AssemblyReference.cache
+C:\Users\me\source\repos\Corium\Corium\obj\Debug\netcoreapp3.1\Corium.GeneratedMSBuildEditorConfig.editorconfig

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "7NZVyJQUdjhDfJSiV5+3ewfcrdxRDSUpKTDMKm6nhxSqVZV9H3lkNkIwx4OGr1ky+BiNMVNSD27NGxVaAmOf4g==",
+  "dgSpecHash": "o5dZudcBeV4ey42CsIikVfUu0LZy9SxIqbsXiTqEbd1J8/z2PPCImQwojp9uL+kDl2u0Ye2QWLpo8ld2Jm1PXg==",
   "success": true,
   "projectFilePath": "C:\\Users\\me\\source\\repos\\Corium\\Corium\\Corium.csproj",
   "expectedPackageFiles": [
@@ -10,7 +10,9 @@
     "C:\\Users\\me\\.nuget\\packages\\microsoft.win32.systemevents\\5.0.0\\microsoft.win32.systemevents.5.0.0.nupkg.sha512",
     "C:\\Users\\me\\.nuget\\packages\\system.commandline\\2.0.0-beta1.21216.1\\system.commandline.2.0.0-beta1.21216.1.nupkg.sha512",
     "C:\\Users\\me\\.nuget\\packages\\system.drawing.common\\5.0.2\\system.drawing.common.5.0.2.nupkg.sha512",
-    "C:\\Users\\me\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512"
+    "C:\\Users\\me\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
+    "C:\\Users\\me\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.1.10\\microsoft.aspnetcore.app.ref.3.1.10.nupkg.sha512",
+    "C:\\Users\\me\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.1.20\\microsoft.netcore.app.host.win-x64.3.1.20.nupkg.sha512"
   ],
   "logs": []
 }
