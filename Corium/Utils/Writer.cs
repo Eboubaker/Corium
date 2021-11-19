@@ -13,12 +13,12 @@ namespace Corium.Utils
         {
             W("[ERROR] " + v, ConsoleColor.Red);
         }
-        
+
         public static void Warning(string v)
         {
             W("[WARNING] " + v, ConsoleColor.Yellow);
         }
-        
+
         public static void Exception(string v)
         {
             W("[Exception] " + v, ConsoleColor.Red);
@@ -49,9 +49,14 @@ namespace Corium.Utils
         {
             if (Context.Silent) return;
             var original = Console.ForegroundColor;
-            Console.ForegroundColor = color;// push
+            Console.ForegroundColor = color; // push
             Console.WriteLine(s);
-            Console.ForegroundColor = original;// pop
+            Console.ForegroundColor = original; // pop
+        }
+
+        public static void Suggestion(string s)
+        {
+            W($"[TIP] {s}", ConsoleColor.DarkMagenta);
         }
     }
 }

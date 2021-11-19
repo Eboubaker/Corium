@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using Corium.Core;
 
 namespace Corium.Utils
 {
@@ -27,11 +28,11 @@ namespace Corium.Utils
         /// <summary>
         /// convert a stream of bytes into a bit iterator
         /// </summary>
-        public static IEnumerator<int> OfStream(Stream stream)
+        public static IEnumerator<int> OfStream(Stream stream, int length)
         {
-            var available = stream.Length;
+            var available = stream.Length - stream.Position;
             var read = 0;
-            while (read++ < available)
+            while (read++ < available && length-- > 0)
             {
                 var b = stream.ReadByte();
                 for (var offset = 7; offset >= 0; offset--)
@@ -85,6 +86,40 @@ namespace Corium.Utils
             }
 
             return data;
+        }
+
+        /// <summary>
+        ///     Write bits into the image, using the context's settings
+        /// </summary>
+        public static void WriteToImage(IEnumerator<int> bits, Bitmap bitmap)
+        {
+            bits.MoveNext();
+            for (var y = 0; y < bitmap.Height; y++)
+            for (var x = 0; x < bitmap.Width; x++)
+            {
+                var channel = bitmap.GetPixel(x, y).ToArgb();
+                for (var channelOffset = Context.ChannelCount - 1; channelOffset >= 0; channelOffset--)
+                {
+                    var shift = 8 * channelOffset;
+                    channel &= ~(((1 << Context.Bits) - 1) << shift);
+                    for (var offset = Context.Bits - 1; offset >= 0; offset--)
+                    {
+                        channel |= bits.Current << (shift + offset);
+                        bits.MoveNext();
+                    }
+                }
+
+                bitmap.SetPixel(x, y, Color.FromArgb(channel));
+            }
+        }
+
+        /// <summary>
+        ///     copy [length] bytes in the image into the stream
+        /// </summary>
+        public static void CopyToStream(Bitmap image, Stream stream, int length)
+        {
+            using var bits = ImageInfo.SkipInfoArea(OfImage(image));
+            stream.Write(ToByteArray(bits, length));
         }
     }
 }

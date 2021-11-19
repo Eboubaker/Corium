@@ -23,7 +23,7 @@ namespace Corium
         public static int ChannelCount { get; set; }
 
         //--- Lazy getters ---//
-        public static PixelFormat PixelFormat => Alpha ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb;
+        public static PixelFormat PixelFormat => Alpha ? PixelFormat.Format32bppArgb : PixelFormat.Format32bppRgb;
         public static string OutExtension => Alpha ? "png" : "jpg";
 
         /// <summary>
@@ -34,8 +34,7 @@ namespace Corium
             get
             {
                 if (_codec != null) return _codec;
-                _codec = ImageCodecInfo.GetImageEncoders().FirstOrDefault(e =>
-                    (e.MimeType == "image/jpeg" && !Alpha) || e.MimeType == "image/png" && Alpha);
+                _codec = ImageCodecInfo.GetImageEncoders().FirstOrDefault(e => e.MimeType == "image/png");
                 return _codec;
             }
         }
@@ -50,10 +49,12 @@ namespace Corium
             get
             {
                 if (_encoder != null) return _encoder;
-                _encoder = new EncoderParameters();
-                _encoder.Param = new[] {new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long) 100)};
+                _encoder = new EncoderParameters(1);
+                _encoder.Param = new[] {new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L)};
                 return _encoder;
             }
         }
+
+        public static bool NoCollectionFolder { get; set; }
     }
 }

@@ -1,119 +1,54 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using Corium.Utils;
 
 namespace Corium.Core
 {
-    /// <summary>
-    /// this is the head of the image, it contains meta data of a single image
-    /// </summary>
-    public class ImageInfo
-    {
-        public const long CoriumFingerprint = 0xC0fe0fC0de;
-
-        public const int Size =
-                8 // Fingerprint
-                +
-                4 // data unique identifier
-                +
-                4 // tissue index
-                +
-                4 // total layers
-                +
-                4 // contained data size
-                +
-                1 // options flags
-            ;
-
-        public long Fingerprint { get; set; }
-        public int DataIdentifier { get; set; }
-        public int ImageIndex { get; set; }
-        public int TotalImages { get; set; }
-        public int StoredDataLength { get; set; }
-        public bool IsCompressed { get; set; }
-
-        /// <summary>
-        /// Skip the imageInfo part from the bits iterator,
-        /// iterator position must be at 0
-        /// </summary>
-        public static IEnumerator<int> SkipInfoArea(IEnumerator<int> bits)
-        {
-            FromBits(bits);
-            return bits;
-        }
-
-        /// <summary>
-        /// convert the imageInfo data into a bit iterator
-        /// </summary>
-        public IEnumerator<int> GetBits()
-        {
-            var bytes = new List<byte>();
-            bytes.AddRange(Fingerprint.Bytes());
-            bytes.AddRange(DataIdentifier.Bytes());
-            bytes.AddRange(ImageIndex.Bytes());
-            bytes.AddRange(TotalImages.Bytes());
-            bytes.AddRange(StoredDataLength.Bytes());
-            bytes.Add((byte) (0 | Convert.ToByte(IsCompressed)));
-            return Bits.OfBytes(bytes);
-        }
-
-        /// <summary>
-        /// Read the imageInfo part from a bit iterator
-        /// </summary>
-        public static ImageInfo FromBits(IEnumerator<int> bits)
-        {
-            var bytes = Bits.ToByteArray(bits, Size);
-            var info = new ImageInfo
-            {
-                Fingerprint = bytes.Take(8).ToArray().ToInt64(),
-                DataIdentifier = bytes.Skip(8).Take(4).ToArray().ToInt32(),
-                ImageIndex = bytes.Skip(12).Take(4).ToArray().ToInt32(),
-                TotalImages = bytes.Skip(16).Take(4).ToArray().ToInt32(),
-                StoredDataLength = bytes.Skip(20).Take(4).ToArray().ToInt32(),
-            };
-            var b = bytes.Skip(24).First();
-            info.IsCompressed = (b & (1 << 0)) == 1;
-            return info;
-        }
-    }
-
     public class ImageWrapper : IDisposable
     {
-        public readonly int Height;
-        public readonly FileInfo Origin;
+        /// <summary>
+        ///     how much bytes can this image contain (without the head info)
+        /// </summary>
+        public readonly int Capacity;
 
-        public readonly int Width;
+        public readonly FileInfo OriginFile;
 
+        //-- lazy getters --//
+        public readonly string OriginName;
         private Bitmap _bitmap;
-        public ImageInfo Info;
 
-        public ImageWrapper(FileInfo origin)
+        public ImageWrapper(FileInfo originFile)
         {
-            var image = Image.FromFile(origin.FullName);
-            Width = image.Width;
-            Height = image.Height;
-            Capacity = Width * Height * Context.ChannelCount * Context.Bits / 8 - ImageInfo.Size;
+            using var image = Image.FromFile(originFile.FullName);
+            Capacity = image.Width * image.Height * Context.ChannelCount * Context.Bits / 8 - ImageInfo.Size;
             if (Capacity <= 0)
                 throw new IndexOutOfRangeException("Image is too small");
-            Origin = origin;
-            Name = Path.GetFileNameWithoutExtension(OriginName);
-            image.Dispose();
+            OriginFile = originFile;
+            Name = Path.GetFileNameWithoutExtension(OriginFile.Name);
+            OriginName = new string(Name);
         }
 
-        public int Capacity { get; }
+        /// <summary>
+        ///     the meta data of this image
+        /// </summary>
+        public ImageInfo Info { get; private set; }
+
         public string Name { get; set; }
-        public string OriginName => Origin.FullName;
 
-
+        /// <summary>
+        ///     dispose the bitmap if it is still open
+        /// </summary>
         public void Dispose()
         {
             _bitmap?.Dispose();
         }
 
-        public string FileName(string extension) => Name + "." + extension;
+        public string FileName(string extension)
+        {
+            return Name + "." + extension;
+        }
+
 
         /// <summary>
         /// read the meta data of this image
@@ -136,8 +71,18 @@ namespace Corium.Core
         public Bitmap OpenBitmap()
         {
             _bitmap?.Dispose();
-            _bitmap = new Bitmap(Origin.FullName);
+            _bitmap = new Bitmap(OriginFile.FullName);
             return _bitmap;
+        }
+
+        /// <summary>
+        ///     clones this image's bitmap with a new one which has the context's pixel format
+        /// </summary>
+        /// <returns></returns>
+        public Bitmap CloneBitmap()
+        {
+            using var bm = OpenBitmap();
+            return bm.Clone(new Rectangle(0, 0, bm.Width, bm.Height), Context.PixelFormat);
         }
     }
 }

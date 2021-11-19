@@ -35,20 +35,20 @@ namespace Corium
 
             // ReSharper disable once ConvertToLocalFunction
             Func<IEnumerable<FileSystemInfo>, IEnumerable<FileSystemInfo>, DirectoryInfo, string, int, bool, bool, bool,
-                int> hideProxy = (images, data, output,
+                bool, int> hideProxy = (images, data, output,
                 collection, bits, alpha,
-                verbose, silent) =>
+                verbose, silent, noSubDirectory) =>
             {
-                var r = RegisterGlobalOptions(verbose, alpha, bits, output, collection);
+                var r = RegisterGlobalOptions(verbose, alpha, bits, output, collection, noSubDirectory);
                 return r != 0 ? r : RunHideOptions(images, data);
             };
 
             // ReSharper disable once ConvertToLocalFunction
-            Func<IEnumerable<FileSystemInfo>, DirectoryInfo, string, int, bool, bool, bool, int> extractProxy = (
+            Func<IEnumerable<FileSystemInfo>, DirectoryInfo, string, int, bool, bool, bool, bool, int> extractProxy = (
                 images, output, collection,
-                bits, alpha, verbose, silent) =>
+                bits, alpha, verbose, silent, no_collection_directory) =>
             {
-                var r = RegisterGlobalOptions(verbose, alpha, bits, output, collection);
+                var r = RegisterGlobalOptions(verbose, alpha, bits, output, collection, no_collection_directory);
                 return r != 0 ? r : RunExtractOptions(images);
             };
 
@@ -68,16 +68,18 @@ namespace Corium
         }
 
         private static int RegisterGlobalOptions(bool verbose, bool alpha, int bits, DirectoryInfo output,
-            string collection)
+            string collection, bool noCollectionDirectory)
         {
             Context.Bits = bits;
             Context.Verbose = verbose;
             Context.Alpha = alpha;
             Context.ChannelCount = Convert.ToByte(alpha) + 3;
-            Context.CollectionNumber = Convert.ToInt32(collection);
+            Context.CollectionNumber = Convert.ToInt32(collection, 16);
             Context.CollectionString = collection.ToUpper();
             Context.OutDir = output;
-
+            Context.NoCollectionFolder = noCollectionDirectory;
+            if (!Context.NoCollectionFolder)
+                Context.OutDir = Context.OutDir.CreateSubdirectory(Context.CollectionString);
             Writer.VerboseFeedBack("Verbose mode is active");
 
             if (Context.OutDir.Exists) return 0;
@@ -96,118 +98,6 @@ namespace Corium
             return 0;
         }
 
-        private static int RunExtractOptions(IEnumerable<FileSystemInfo> searchPaths)
-        {
-            Writer.FeedBack("Locating and parsing Images");
-            var images = new List<ImageWrapper>();
-            foreach (var path in searchPaths)
-            {
-                foreach (var f in path.GetAllFilesRecursively())
-                {
-                    try
-                    {
-                        images.Add(new ImageWrapper(f));
-                    }
-                    catch (IndexOutOfRangeException e)
-                    {
-                        Writer.VerboseException(e.Message);
-                        Writer.Error($"Image is too small [{f}]");
-                    }
-                    catch (OutOfMemoryException e)
-                    {
-                        Writer.VerboseException(e.Message);
-                        Writer.Warning($"Unsupported Image Format in file [{f}]");
-                    }
-                    catch (Exception e)
-                    {
-                        Writer.VerboseException(e.Message);
-                        Writer.Warning($"Access denied to the file [{f}]");
-                    }
-                }
-            }
-
-            if (images.Count == 0)
-            {
-                Writer.Error("No supported images were found in the given paths");
-                images.ToList().ForEach(Console.WriteLine);
-                return Error.NO_IMAGE_FOUND;
-            }
-
-            Writer.VerboseFeedBack("Filtering non singed images");
-            var removed = images.RemoveAll(m =>
-            {
-                try
-                {
-                    m.ReadInfo();
-                }
-                catch (InvalidDataException)
-                {
-                    Writer.VerboseWarning($"Invalid image signature for image [{m.OriginName}]");
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Writer.VerboseWarning(
-                        $"Error occured while trying to read image head for image [{m.OriginName}] [{e.Message}]");
-                    return true;
-                }
-
-                return false;
-            });
-            Writer.VerboseFeedBack($"Removed {removed} non signed images");
-            Writer.VerboseFeedBack($"Found {images.Count} signed images");
-            var imageCollections = new Dictionary<int, List<ImageWrapper>>();
-            foreach (var group in images.GroupBy(e => e.Info.DataIdentifier))
-            {
-                var ims = group.ToList();
-                Writer.VerboseFeedBack($"Sorting images of collection {group.Key}");
-                ims.Sort((m1, m2) => m1.Info.ImageIndex - m2.Info.ImageIndex);
-                imageCollections.Add(group.Key, ims);
-            }
-
-            Writer.FeedBack($"Found {imageCollections.Count} data collections");
-            if (Context.CollectionNumber != 0)
-            {
-                imageCollections = imageCollections
-                    .Where(group => group.Key == Context.CollectionNumber)
-                    .ToDictionary(group => group.Key, group => group.Value);
-                if (imageCollections.Count == 0)
-                {
-                    Writer.Error($"Collection {Context.CollectionString} was not found");
-                }
-            }
-
-            var failed = false;
-            foreach (var (group, collection) in imageCollections)
-            {
-                try
-                {
-                    Writer.FeedBack($"Extracting collection {group}");
-                    var tempZip = ImageCollection.ExtractCollection(collection);
-                    try
-                    {
-                        var outDir = Path.Combine(Context.OutDir.FullName, Convert.ToString(group, 16).ToUpper());
-                        ZipFile.ExtractToDirectory(tempZip.FullName, outDir, true);
-                        Writer.FeedBack($"Extracted collection {group} to output directory {outDir}");
-                        tempZip.Delete();
-                    }
-                    catch
-                    {
-                        tempZip.Delete();
-                        throw;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Writer.VerboseException(e.Message);
-                    Writer.Error($"Failed to extract collection {group}");
-                    failed = true;
-                }
-            }
-
-            return failed ? Error.COLLECTION_EXTRACT_FAILED : 0;
-        }
-
         private static int RunHideOptions(IEnumerable<FileSystemInfo> imagePaths, IEnumerable<FileSystemInfo> data)
         {
             Writer.FeedBack("Locating and parsing Images");
@@ -218,7 +108,10 @@ namespace Corium
                 {
                     try
                     {
-                        images.Add(new ImageWrapper(f));
+                        if (f.IsRecognisedImageFile())
+                            images.Add(new ImageWrapper(f));
+                        else
+                            throw new OutOfMemoryException("unrecognized image extension");
                     }
                     catch (OutOfMemoryException e)
                     {
@@ -326,7 +219,7 @@ namespace Corium
                         foreach (var selected in pickedImages)
                         {
                             Writer.VerboseFeedBack(
-                                $"[{selected.Capacity.HumanReadableSize()}] {selected.Origin.FullName} ");
+                                $"[{selected.Capacity.HumanReadableSize()}] {selected.OriginFile.FullName} ");
                         }
 
                         try
@@ -335,9 +228,13 @@ namespace Corium
                             var uniqueNames = new HashSet<string>();
                             foreach (var im in pickedImages)
                             {
-                                while (uniqueNames.Contains(im.Name))
+                                var counter = 2;
+                                while (uniqueNames.Contains(im.Name) ||
+                                       File.Exists(Path.Combine(Context.OutDir.FullName,
+                                           im.FileName(Context.OutExtension))))
                                 {
-                                    im.Name += "_copy";
+                                    im.Name = im.OriginName + "_" + counter;
+                                    counter++;
                                 }
 
                                 uniqueNames.Add(im.Name);
@@ -347,10 +244,12 @@ namespace Corium
                             {
                                 Fingerprint = ImageInfo.CoriumFingerprint,
                                 DataIdentifier = Context.CollectionNumber,
-                                TotalImages = images.Count,
+                                TotalImages = pickedImages.Count
                             };
                             ImageCollection.WriteToStream(archive.OpenRead(), pickedImages, head);
-                            Writer.FeedBack($"Done!, generated {pickedImages.Count} images with collection" +
+                            Writer.FeedBack($"Generated {pickedImages.Count} image" +
+                                            (pickedImages.Count > 1 ? "s" : "") +
+                                            " with collection" +
                                             $" key {Context.CollectionString}" +
                                             $" in directory {Context.OutDir.FullName}");
                         }
@@ -389,12 +288,134 @@ namespace Corium
 
             return 0;
         }
+
+        private static int RunExtractOptions(IEnumerable<FileSystemInfo> searchPaths)
+        {
+            Writer.FeedBack("Locating and parsing Images");
+            var images = new List<ImageWrapper>();
+            foreach (var path in searchPaths)
+            foreach (var f in path.GetAllFilesRecursively())
+                try
+                {
+                    images.Add(new ImageWrapper(f));
+                }
+                catch (IndexOutOfRangeException e)
+                {
+                    Writer.VerboseException(e.Message);
+                    Writer.Warning($"Image is too small [{f}]");
+                }
+                catch (OutOfMemoryException e)
+                {
+                    Writer.VerboseException(e.Message);
+                    Writer.Warning($"Unsupported Image Format in file [{f}]");
+                }
+                catch (Exception e)
+                {
+                    Writer.VerboseException(e.Message);
+                    Writer.Warning($"Access denied to the file [{f}]");
+                }
+
+            if (images.Count == 0)
+            {
+                Writer.Error("No supported images were found in the given paths");
+                images.ToList().ForEach(Console.WriteLine);
+                return Error.NO_IMAGE_FOUND;
+            }
+
+            Writer.VerboseFeedBack("Filtering non singed images");
+            var removed = images.RemoveAll(m =>
+            {
+                try
+                {
+                    m.ReadInfo();
+                }
+                catch (InvalidDataException)
+                {
+                    Writer.VerboseWarning($"Invalid image signature for image [{m.OriginFile.FullName}]");
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Writer.VerboseWarning(
+                        $"Error occured while trying to read image head for image [{m.OriginFile.FullName}] [{e.Message}]");
+                    return true;
+                }
+
+                return false;
+            });
+            Writer.VerboseFeedBack($"Removed {removed} non signed images");
+            Writer.VerboseFeedBack($"Found {images.Count} signed images");
+            var imageCollections = new Dictionary<int, List<ImageWrapper>>();
+            foreach (var group in images.GroupBy(e => e.Info.DataIdentifier))
+            {
+                var ims = group.ToList();
+                Writer.VerboseFeedBack($"Sorting images of collection {group.Key}");
+                ims.Sort((m1, m2) => m1.Info.ImageIndex - m2.Info.ImageIndex);
+                imageCollections.Add(group.Key, ims);
+            }
+
+            if (imageCollections.Count == 0)
+            {
+                Writer.Error($"Found {imageCollections.Count} data collections");
+                return Error.NO_COLLECTION_FOUND;
+            }
+
+            Writer.FeedBack($"Found {imageCollections.Count} data collections");
+
+            if (Context.CollectionNumber != 0)
+            {
+                imageCollections = imageCollections
+                    .Where(group => group.Key == Context.CollectionNumber)
+                    .ToDictionary(group => group.Key, group => group.Value);
+                if (imageCollections.Count == 0)
+                {
+                    Writer.Error($"Collection {Context.CollectionString} was not found");
+                    return Error.COLLECTION_NOT_FOUND;
+                }
+            }
+
+            if (Context.CollectionNumber == 0 && imageCollections.Count > 1)
+                Writer.Suggestion("To give a specific collection target use --collection option");
+
+            var failed = false;
+            foreach (var (group, collection) in imageCollections)
+            {
+                var collectionString = Convert.ToString(group, 16).ToUpper();
+                try
+                {
+                    Writer.FeedBack($"Extracting collection {collectionString}");
+                    var tempZip = ImageCollection.ExtractCollection(collection);
+                    try
+                    {
+                        ZipFile.ExtractToDirectory(tempZip.FullName, Context.OutDir.FullName, true);
+                        Writer.FeedBack(
+                            $"Extracted collection {collectionString} to output directory {Context.OutDir.FullName}");
+                        tempZip.Delete();
+                    }
+                    catch
+                    {
+                        tempZip.Delete();
+                        throw;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Writer.VerboseException(e.Message);
+                    Writer.Error($"Failed to extract collection {collectionString}");
+                    failed = true;
+                }
+            }
+
+            return failed ? Error.COLLECTION_EXTRACT_FAILED : 0;
+        }
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal static class Error
+    public static class Error
     {
         // 1 is reserved for arg parsing fail
+        // ReSharper disable once UnusedMember.Global
+        public const int ARG_PARSE_FAIL = 1;
         public const int TEMP_DIR_CREATE_FAIL = 2;
         public const int DATA_COMPRESS_FAIL = 3;
         public const int INSUFFICIENT_IMAGE_SIZE = 4;
@@ -404,5 +425,7 @@ namespace Corium
         public const int COLLECTION_EXTRACT_FAILED = 8;
         public const int UNKNOWN = 9;
         public const int OUT_DIR_CREATE_FAIL = 10;
+        public const int NO_COLLECTION_FOUND = 11;
+        public const int COLLECTION_NOT_FOUND = 12;
     }
 }

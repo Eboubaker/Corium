@@ -23,6 +23,7 @@ namespace Corium
                 "Turn on silent mode (no messages will appear on the console, if return code was 0 then operation was successful).",
                 getDefaultValue: () => false));
 
+
             // hide options //
 
             hideCommand.AddOption(new Option<FileSystemInfo[]>(
@@ -40,8 +41,8 @@ namespace Corium
 
             hideCommand.AddOption(new Option<DirectoryInfo>(
                     new[] {"--output", "-o"},
-                    () => new DirectoryInfo("output"),
-                    "(DEFAULT output) The name or the path of the output directory(processed image" +
+                    () => new DirectoryInfo("processed"),
+                    "(DEFAULT processed) The name or the path of the output directory(processed image" +
                     " collections will be dropped in this output directory)."
                 )
                 .Chain(o => o.AddValidator(ValidateDirectoryIsWritable)));
@@ -63,9 +64,14 @@ namespace Corium
                     description: "(DEFAULT <generated>) Set the collection number of the output images",
                     getDefaultValue: RandomCollectionNumber)
                 .Chain(o => o.AddValidator(ValidCollectionNumber)));
-
+            hideCommand.AddGlobalOption(new Option<bool>(
+                new[] {"--no-sub-directory", "-n"},
+                description: "by default processed images will be placed in a folder" +
+                             " whose name is the collection name of the images" +
+                             "enabling this option will disable this feature and all " +
+                             "images will be put in the same output directory",
+                getDefaultValue: () => false));
             // extract options //
-
             extractCommand.AddOption(new Option<FileSystemInfo[]>(
                     new[] {"--images", "-i"},
                     "The path(s) to the image(s) or directory(s) containing images that is to be used by " +
@@ -83,8 +89,8 @@ namespace Corium
                 .Chain(o => o.AddValidator(ValidCollectionNumber)));
             extractCommand.AddOption(new Option<DirectoryInfo>(
                     new[] {"--output", "-o"},
-                    () => new DirectoryInfo("output"),
-                    "(DEFAULT output) The name or the path of the output directory(extracted files " +
+                    () => new DirectoryInfo("extracted"),
+                    "(DEFAULT extracted) The name or the path of the output directory(extracted files " +
                     "will be dropped in this directory).")
                 .Chain(o => o.AddValidator(ValidateDirectoryIsWritable)));
 
@@ -97,6 +103,13 @@ namespace Corium
                 new[] {"--alpha", "-a"},
                 description: "(DEFAULT None) Use alpha channels in the input images (set to true if images were " +
                              "used by corium with alpha option set to true when hiding files)",
+                getDefaultValue: () => false));
+            extractCommand.AddGlobalOption(new Option<bool>(
+                new[] {"--no-collection-directory", "-ncd"},
+                description: "by default extracted files will be placed in a folder whose name" +
+                             " is the collection name of the images" +
+                             "enabling this option will disable this feature and all collection " +
+                             "files will be put in the same output directory",
                 getDefaultValue: () => false));
         }
 
