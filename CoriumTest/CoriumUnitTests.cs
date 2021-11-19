@@ -1,19 +1,22 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Corium;
-using System.IO;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CoriumTest
 {
     [TestClass]
     public class UnitTests
     {
-        private readonly Random _r = new Random();
+        // a big non-compressible single file
+        private const string BigMp4Video = @"C:\Users\me\Downloads\BrBa.S01E02.720p.BrRip.x264.350MB-Pahe.in.mkv";
 
+        // small txt file
+        private const string TxtFile = @"C:\Users\me\Desktop\input.txt";
+
+        // folder which contains a bunch of random images
+        private const string ImagesFolder = @"D:\restored\memes\";
+        private readonly Random _r = new Random();
 
         /// <returns>true if random number was greater than p</returns>
         private bool P(double p)
@@ -42,7 +45,7 @@ namespace CoriumTest
         [TestMethod]
         public void WorkMinimumArgs()
         {
-            var t1 = Corium.Corium.Main("hide", "-v", "-i", @"D:\restored\memes\", "-d", @"C:\Users\me\Desktop\input.txt");
+            var t1 = Corium.Corium.Main("hide", "-v", "-i", ImagesFolder, "-d", TxtFile);
             Assert.AreEqual(0, t1.Result);
             var t2 = Corium.Corium.Main("extract", "-v", "-i", @"output");
             Assert.AreEqual(0, t2.Result);
@@ -59,7 +62,7 @@ namespace CoriumTest
                 "-v",
                 "-i",
                 @"D:\restored\memes\",
-                "-d", 
+                "-d",
                 @"C:\Users\me\Desktop\input.txt",
                 alpha ? "-a" : "",
                 "-b",

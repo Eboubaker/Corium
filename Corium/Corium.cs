@@ -35,7 +35,7 @@ namespace Corium
 
             // ReSharper disable once ConvertToLocalFunction
             Func<IEnumerable<FileSystemInfo>, IEnumerable<FileSystemInfo>, DirectoryInfo, string, int, bool, bool, bool,
-                int> hideAction = (images, data, output,
+                int> hideProxy = (images, data, output,
                 collection, bits, alpha,
                 verbose, silent) =>
             {
@@ -44,7 +44,7 @@ namespace Corium
             };
 
             // ReSharper disable once ConvertToLocalFunction
-            Func<IEnumerable<FileSystemInfo>, DirectoryInfo, string, int, bool, bool, bool, int> extractAction = (
+            Func<IEnumerable<FileSystemInfo>, DirectoryInfo, string, int, bool, bool, bool, int> extractProxy = (
                 images, output, collection,
                 bits, alpha, verbose, silent) =>
             {
@@ -52,8 +52,8 @@ namespace Corium
                 return r != 0 ? r : RunExtractOptions(images);
             };
 
-            hideCommand.Handler = CommandHandler.Create(hideAction);
-            extractCommand.Handler = CommandHandler.Create(extractAction);
+            hideCommand.Handler = CommandHandler.Create(hideProxy);
+            extractCommand.Handler = CommandHandler.Create(extractProxy);
 
             try
             {
@@ -183,17 +183,17 @@ namespace Corium
                 try
                 {
                     Writer.FeedBack($"Extracting collection {group}");
-                    var file = Tyrozyna.ExtractCollection(collection);
+                    var tempZip = ImageCollection.ExtractCollection(collection);
                     try
                     {
                         var outDir = Path.Combine(Context.OutDir.FullName, Convert.ToString(group, 16).ToUpper());
-                        ZipFile.ExtractToDirectory(file.FullName, outDir, true);
+                        ZipFile.ExtractToDirectory(tempZip.FullName, outDir, true);
                         Writer.FeedBack($"Extracted collection {group} to output directory {outDir}");
-                        file.Delete();
+                        tempZip.Delete();
                     }
                     catch
                     {
-                        file.Delete();
+                        tempZip.Delete();
                         throw;
                     }
                 }
@@ -349,7 +349,7 @@ namespace Corium
                                 DataIdentifier = Context.CollectionNumber,
                                 TotalImages = images.Count,
                             };
-                            Tyrozyna.InsertCancer(archive.OpenRead(), pickedImages, head);
+                            ImageCollection.WriteToStream(archive.OpenRead(), pickedImages, head);
                             Writer.FeedBack($"Done!, generated {pickedImages.Count} images with collection" +
                                             $" key {Context.CollectionString}" +
                                             $" in directory {Context.OutDir.FullName}");

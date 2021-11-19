@@ -7,26 +7,26 @@ using Corium.Utils;
 
 namespace Corium.Core
 {
-   /// <summary>
-   /// this is the head of the image, it contains meta data of a single image
-   /// </summary>
+    /// <summary>
+    /// this is the head of the image, it contains meta data of a single image
+    /// </summary>
     public class ImageInfo
     {
         public const long CoriumFingerprint = 0xC0fe0fC0de;
 
         public const int Size =
-            8 // Fingerprint
-            +
-            4 // data unique identifier
-            +
-            4 // tissue index
-            +
-            4 // total layers
-            +
-            4 // contained data size
-            +
-            1 // options flags
-            ; 
+                8 // Fingerprint
+                +
+                4 // data unique identifier
+                +
+                4 // tissue index
+                +
+                4 // total layers
+                +
+                4 // contained data size
+                +
+                1 // options flags
+            ;
 
         public long Fingerprint { get; set; }
         public int DataIdentifier { get; set; }
@@ -34,7 +34,7 @@ namespace Corium.Core
         public int TotalImages { get; set; }
         public int StoredDataLength { get; set; }
         public bool IsCompressed { get; set; }
-        
+
         /// <summary>
         /// Skip the imageInfo part from the bits iterator,
         /// iterator position must be at 0
@@ -56,9 +56,10 @@ namespace Corium.Core
             bytes.AddRange(ImageIndex.Bytes());
             bytes.AddRange(TotalImages.Bytes());
             bytes.AddRange(StoredDataLength.Bytes());
-            bytes.Add((byte)(0 | Convert.ToByte(IsCompressed)));
-            return Bits.ByteArrayToBitIterator(bytes);
+            bytes.Add((byte) (0 | Convert.ToByte(IsCompressed)));
+            return Bits.OfBytes(bytes);
         }
+
         /// <summary>
         /// Read the imageInfo part from a bit iterator
         /// </summary>
@@ -81,18 +82,14 @@ namespace Corium.Core
 
     public class ImageWrapper : IDisposable
     {
+        public readonly int Height;
+        public readonly FileInfo Origin;
 
         public readonly int Width;
-        public readonly int Height;
-        public int Capacity { get; }
-        public ImageInfo Info;
 
         private Bitmap _bitmap;
-        public string Name { get; set; }
-        public string FileName(string extension) => Name + "." + extension;
-        public readonly FileInfo Origin;
-        public string OriginName => Origin.FullName;
-        
+        public ImageInfo Info;
+
         public ImageWrapper(FileInfo origin)
         {
             var image = Image.FromFile(origin.FullName);
@@ -106,6 +103,18 @@ namespace Corium.Core
             image.Dispose();
         }
 
+        public int Capacity { get; }
+        public string Name { get; set; }
+        public string OriginName => Origin.FullName;
+
+
+        public void Dispose()
+        {
+            _bitmap?.Dispose();
+        }
+
+        public string FileName(string extension) => Name + "." + extension;
+
         /// <summary>
         /// read the meta data of this image
         /// </summary>
@@ -114,12 +123,13 @@ namespace Corium.Core
         {
             if (Info != null) return Info;
             using var bitmap = OpenBitmap();
-            Info = ImageInfo.FromBits(Bits.ImageToBitIterator(bitmap));
+            Info = ImageInfo.FromBits(Bits.OfImage(bitmap));
             if (Info.Fingerprint != ImageInfo.CoriumFingerprint)
             {
                 throw new InvalidDataException(
                     "Image Signature Mismatch (the image probably was not created by this application)");
             }
+
             return Info;
         }
 
@@ -128,12 +138,6 @@ namespace Corium.Core
             _bitmap?.Dispose();
             _bitmap = new Bitmap(Origin.FullName);
             return _bitmap;
-        }
-
-        
-        public void Dispose()
-        {
-            _bitmap?.Dispose();
         }
     }
 }
