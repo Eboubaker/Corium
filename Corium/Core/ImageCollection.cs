@@ -18,6 +18,7 @@ namespace Corium.Core
             var remainingBytes = stream.Length;
             foreach (var image in collection)
             {
+                Writer.FeedBack($"processing image part {image.OriginFile.FullName}");
                 baseInfo.StoredDataLength = (int) Math.Min(remainingBytes, image.Capacity);
                 remainingBytes = Math.Max(0, remainingBytes - image.Capacity);
                 using var bitmap = image.CloneBitmap();

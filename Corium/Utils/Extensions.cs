@@ -88,11 +88,11 @@ namespace Corium.Utils
 
         public static IEnumerable<FileInfo> GetAllFilesRecursively(this FileSystemInfo path)
         {
-            if (File.Exists(path.FullName))
+            if (File.Exists(path.FullName) && (path.Attributes & FileAttributes.System) == 0)
             {
                 yield return new FileInfo(path.FullName);
             }
-            else
+            else if((path.Attributes & FileAttributes.System) == 0)
             {
                 string[] files = { };
                 try
@@ -120,6 +120,10 @@ namespace Corium.Utils
                 foreach (var d in directories)
                 foreach (var f in GetAllFilesRecursively(new DirectoryInfo(d)))
                     yield return f;
+            }
+            else
+            {
+                Writer.VerboseFeedBack($"Skipped system entry {path}");
             }
         }
 

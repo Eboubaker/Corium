@@ -141,7 +141,7 @@ namespace Corium
             {
                 Writer.VerboseFeedBack($"Creating temporary directory [{tempDir}]");
                 var tempDirectory = Directory.CreateDirectory(tempDir);
-                Writer.VerboseFeedBack("Copying data to directory");
+                Writer.FeedBack("Copying data to temporary directory...");
                 foreach (var source in data)
                 {
                     var dest = "";
@@ -171,7 +171,7 @@ namespace Corium
 
                 try
                 {
-                    Writer.VerboseFeedBack("Compressing data");
+                    Writer.FeedBack("Compressing data");
                     var total = 0f;
                     var compressible = tempDirectory.GetAllFilesRecursively().Aggregate(0f, (acc, f) =>
                     {
@@ -181,7 +181,7 @@ namespace Corium
                     var compressionLevel =
                         compressible / total > .7 ? CompressionLevel.Optimal : CompressionLevel.NoCompression;
                     Writer.VerboseFeedBack($"Using compression level " +
-                                           (compressionLevel == CompressionLevel.Optimal ? "MAX" : "0"));
+                                           (compressionLevel == CompressionLevel.Optimal ? "Optimal" : "Zero"));
                     var archive = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
                     ZipFile.CreateFromDirectory(tempDirectory.FullName, archive.FullName, compressionLevel, false);
                     var pickedImages = new List<ImageWrapper>();
@@ -215,16 +215,17 @@ namespace Corium
 
                     if (requiredBytes <= 0)
                     {
-                        Writer.VerboseFeedBack($"selected {pickedImages.Count} Images");
+                        Writer.FeedBack($"selected {pickedImages.Count} Images");
+                        var sum = 0;
                         foreach (var selected in pickedImages)
                         {
-                            Writer.VerboseFeedBack(
-                                $"[{selected.Capacity.HumanReadableSize()}] {selected.OriginFile.FullName} ");
+                            sum += selected.Capacity;
+                            Writer.VerboseFeedBack($"[{selected.Capacity.HumanReadableSize()}] image {selected.OriginFile.FullName} ");
                         }
-
+                        Writer.FeedBack($"Selected images capacity is {sum.HumanReadableSize()} data size is {archive.Length.HumanReadableSize()}");
                         try
                         {
-                            Writer.VerboseFeedBack("Starting image processing");
+                            Writer.FeedBack("Starting image processing");
                             var uniqueNames = new HashSet<string>();
                             foreach (var im in pickedImages)
                             {
