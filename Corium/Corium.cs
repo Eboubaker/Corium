@@ -24,9 +24,9 @@ namespace Corium
             }
 
             var rootCommand = new RootCommand("Corium is an image steganography utility " +
-                                              "which allows to hide data inside images");
+                                              "which allows to hide files inside images");
             var hideCommand = new Command("hide", "Hide files inside images");
-            var extractCommand = new Command("extract", "Extract hidden files from images");
+            var extractCommand = new Command("extract", "Extract hidden files from previously processed images");
 
             rootCommand.AddCommand(hideCommand);
             rootCommand.AddCommand(extractCommand);
@@ -39,17 +39,17 @@ namespace Corium
                 collection, bits, alpha,
                 verbose, silent, noSubDirectory) =>
             {
-                var r = RegisterGlobalOptions(verbose, alpha, bits, output, collection, noSubDirectory);
-                return r != 0 ? r : RunHideOptions(images, data);
+                RegisterGlobalOptions(verbose, alpha, bits, output, collection, noSubDirectory);
+                return RunHideOptions(images, data);
             };
 
             // ReSharper disable once ConvertToLocalFunction
-            Func<IEnumerable<FileSystemInfo>, DirectoryInfo, string, int, bool, bool, bool, bool, int> extractProxy = (
+            Func<FileSystemInfo[], DirectoryInfo, string, int, bool, bool, bool, bool, int> extractProxy = (
                 images, output, collection,
                 bits, alpha, verbose, silent, no_collection_directory) =>
             {
-                var r = RegisterGlobalOptions(verbose, alpha, bits, output, collection, no_collection_directory);
-                return r != 0 ? r : RunExtractOptions(images);
+                RegisterGlobalOptions(verbose, alpha, bits, output, collection, no_collection_directory);
+                return RunExtractOptions(images);
             };
 
             hideCommand.Handler = CommandHandler.Create(hideProxy);
@@ -67,39 +67,40 @@ namespace Corium
             }
         }
 
-        private static int RegisterGlobalOptions(bool verbose, bool alpha, int bits, DirectoryInfo output,
+        private static void RegisterGlobalOptions(bool verbose, bool alpha, int bits, DirectoryInfo output,
             string collection, bool noCollectionDirectory)
         {
             Context.Bits = bits;
             Context.Verbose = verbose;
             Context.Alpha = alpha;
             Context.ChannelCount = Convert.ToByte(alpha) + 3;
-            Context.CollectionNumber = Convert.ToInt32(collection, 16);
+            Context.CollectionNumber = string.IsNullOrEmpty(collection) ? 0 : Convert.ToInt32(collection, 16);
             Context.CollectionString = collection.ToUpper();
             Context.OutDir = output;
             Context.NoCollectionFolder = noCollectionDirectory;
-            if (!Context.NoCollectionFolder)
-                Context.OutDir = Context.OutDir.CreateSubdirectory(Context.CollectionString);
-            Writer.VerboseFeedBack("Verbose mode is active");
-
-            if (Context.OutDir.Exists) return 0;
-            Writer.VerboseFeedBack("Output directory does not exist, trying to create output directory");
-            try
-            {
-                Context.OutDir.Create();
-            }
-            catch (Exception e)
-            {
-                Writer.VerboseException(e.Message);
-                Writer.Error("Could not create output directory");
-                return Error.OUT_DIR_CREATE_FAIL;
-            }
-
-            return 0;
         }
 
         private static int RunHideOptions(IEnumerable<FileSystemInfo> imagePaths, IEnumerable<FileSystemInfo> data)
         {
+            if (!Context.NoCollectionFolder)
+                Context.OutDir = Context.OutDir.CreateSubdirectory(Context.CollectionString);
+            Writer.VerboseFeedBack("Verbose mode is active");
+
+            if (!Context.OutDir.Exists)
+            {
+                Writer.VerboseFeedBack("Output directory does not exist, trying to create output directory");
+                try
+                {
+                    Context.OutDir.Create();
+                }
+                catch (Exception e)
+                {
+                    Writer.VerboseException(e.Message);
+                    Writer.Error("Could not create output directory");
+                    return Error.OUT_DIR_CREATE_FAIL;
+                }
+            }
+
             Writer.FeedBack("Locating and parsing Images");
             var images = new List<ImageWrapper>();
             foreach (var path in imagePaths)
@@ -111,7 +112,8 @@ namespace Corium
                         if (f.IsRecognisedImageFile())
                             images.Add(new ImageWrapper(f));
                         else
-                            throw new OutOfMemoryException("unrecognized image extension");
+                            throw new OutOfMemoryException(
+                                $"skipped image: unrecognized/invalid image format: {f.FullName}");
                     }
                     catch (OutOfMemoryException e)
                     {
@@ -201,8 +203,8 @@ namespace Corium
                     else
                     {
                         foreach (var im in
-                            images.ToArray()
-                                .Reverse()) // this is a lazy reverse (returns new iterator which reads backwards)
+                                 images.ToArray()
+                                     .Reverse()) // this is a lazy reverse (returns new iterator which reads backwards)
                         {
                             requiredBytes -= im.Capacity;
                             pickedImages.Add(im);
@@ -220,9 +222,12 @@ namespace Corium
                         foreach (var selected in pickedImages)
                         {
                             sum += selected.Capacity;
-                            Writer.VerboseFeedBack($"[{selected.Capacity.HumanReadableSize()}] image {selected.OriginFile.FullName} ");
+                            Writer.VerboseFeedBack(
+                                $"[{selected.Capacity.HumanReadableSize()}] image {selected.OriginFile.FullName} ");
                         }
-                        Writer.FeedBack($"Selected images capacity is {sum.HumanReadableSize()} data size is {archive.Length.HumanReadableSize()}");
+
+                        Writer.FeedBack(
+                            $"Selected images capacity is {sum.HumanReadableSize()} data size is {archive.Length.HumanReadableSize()}");
                         try
                         {
                             Writer.FeedBack("Starting image processing");
@@ -290,7 +295,7 @@ namespace Corium
             return 0;
         }
 
-        private static int RunExtractOptions(IEnumerable<FileSystemInfo> searchPaths)
+        private static int RunExtractOptions(FileSystemInfo[] searchPaths)
         {
             Writer.FeedBack("Locating and parsing Images");
             var images = new List<ImageWrapper>();
@@ -319,7 +324,7 @@ namespace Corium
             if (images.Count == 0)
             {
                 Writer.Error("No supported images were found in the given paths");
-                images.ToList().ForEach(Console.WriteLine);
+                searchPaths.ToList().ForEach(Console.WriteLine);
                 return Error.NO_IMAGE_FOUND;
             }
 
@@ -357,7 +362,9 @@ namespace Corium
 
             if (imageCollections.Count == 0)
             {
-                Writer.Error($"Found {imageCollections.Count} data collections");
+                Writer.Error(removed > 0
+                    ? "no signed image found, make sure --bits and --alpha options are correct"
+                    : "no valid image was found in specified paths");
                 return Error.NO_COLLECTION_FOUND;
             }
 
@@ -376,21 +383,39 @@ namespace Corium
             }
 
             if (Context.CollectionNumber == 0 && imageCollections.Count > 1)
-                Writer.Suggestion("To give a specific collection target use --collection option");
+                Writer.Suggestion(
+                    "more than one collection detected, use --collection option to only extract a specific collection");
 
             var failed = false;
-            foreach (var (group, collection) in imageCollections)
+            foreach (var (collectionNumber, collection) in imageCollections)
             {
-                var collectionString = Convert.ToString(group, 16).ToUpper();
+                var collectionHash = Convert.ToString(collectionNumber, 16).ToUpper();
                 try
                 {
-                    Writer.FeedBack($"Extracting collection {collectionString}");
+                    Writer.FeedBack($"Extracting collection {collectionHash}");
                     var tempZip = ImageCollection.ExtractCollection(collection);
                     try
                     {
-                        ZipFile.ExtractToDirectory(tempZip.FullName, Context.OutDir.FullName, true);
-                        Writer.FeedBack(
-                            $"Extracted collection {collectionString} to output directory {Context.OutDir.FullName}");
+                        var outPath = Path.Combine(Context.OutDir.FullName, collectionHash);
+                        if (Directory.Exists(outPath))
+                        {
+                            Writer.Error($"output directory already exists: {outPath}");
+                            throw new Exception("output directory already exists");
+                        }
+
+                        try
+                        {
+                            Writer.VerboseFeedBack($"creating output directory {outPath}");
+                            Directory.CreateDirectory(outPath);
+                        }
+                        catch (IOException e)
+                        {
+                            Writer.Error($"could not create output directory: {outPath} caused by: {e.Message}");
+                        }
+
+                        Writer.FeedBack("Decompressing data");
+                        ZipFile.ExtractToDirectory(tempZip.FullName, outPath, true);
+                        Writer.FeedBack($"Extracted collection {collectionHash} to output directory {outPath}");
                         tempZip.Delete();
                     }
                     catch
@@ -402,7 +427,7 @@ namespace Corium
                 catch (Exception e)
                 {
                     Writer.VerboseException(e.Message);
-                    Writer.Error($"Failed to extract collection {collectionString}");
+                    Writer.Error($"Failed to extract collection {collectionHash}\nuse verbose logging for details");
                     failed = true;
                 }
             }
@@ -423,7 +448,7 @@ namespace Corium
         public const int IMAGE_PROCESS_FAIL = 5;
         public const int ITEM_COPY_FAIL = 6;
         public const int NO_IMAGE_FOUND = 7;
-        public const int COLLECTION_EXTRACT_FAILED = 8;
+        public const int COLLECTION_EXTRACT_FAILED = 8; // one or all collection extraction failed
         public const int UNKNOWN = 9;
         public const int OUT_DIR_CREATE_FAIL = 10;
         public const int NO_COLLECTION_FOUND = 11;

@@ -40,12 +40,12 @@ namespace Corium.Utils
         }
 
         /**
-         * humans are lazy and dump they cant convert byte units so we do it for them
+         * humans are lazy they cant convert byte units so we do it for them
          */
         public static string HumanReadableSize(this long byteCount)
         {
             //Longs run out around EB, like we ever gonna have images with that size, unless...
-            var units = new[] {"B", "KB", "MB", "GB", "TB", "PB", "EB"};
+            var units = new[] { "Bytes", "KB", "MB", "GB", "TB", "PB", "EB" };
             if (byteCount == 0) return "0" + units[0];
             var bytes = Math.Abs(byteCount);
             var @base = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
@@ -55,11 +55,11 @@ namespace Corium.Utils
 
         public static string HumanReadableSize(this int byteCount)
         {
-            return ((long) byteCount).HumanReadableSize();
+            return ((long)byteCount).HumanReadableSize();
         }
 
         // idea stolen from https://stackoverflow.com/questions/7027022/java-how-to-efficiently-predict-if-data-is-compressible
-        // essentially read small parts of the stream and check if they can be compressed
+        // essentially read small parts of the stream from different locations into a single buffer then check if the buffer data is compressible (data is not very random or in other words "low entropy")
         public static bool IsCompressible(this FileStream stream)
         {
             var data = new List<byte>();
@@ -73,8 +73,8 @@ namespace Corium.Utils
             var len = data.Count;
             var sum = new int[16];
             data.ForEach(byteData => sum[(byteData & 0xff) >> 4]++);
-            return len * sum.Select(x => ((long) x << 32) / len)
-                       .Select(v => 63 - BitOperations.LeadingZeroCount((ulong) (v + 1))).Sum()
+            return len * sum.Select(x => ((long)x << 32) / len)
+                       .Select(v => 63 - BitOperations.LeadingZeroCount((ulong)(v + 1))).Sum()
                    < 438 * len;
         }
 
@@ -92,7 +92,7 @@ namespace Corium.Utils
             {
                 yield return new FileInfo(path.FullName);
             }
-            else if((path.Attributes & FileAttributes.System) == 0)
+            else if ((path.Attributes & FileAttributes.System) == 0)
             {
                 string[] files = { };
                 try
@@ -127,12 +127,6 @@ namespace Corium.Utils
             }
         }
 
-        public static List<T> Sorted<T>(this List<T> list, Comparison<T> comparision)
-        {
-            list.Sort(comparision);
-            return list;
-        }
-
         /// <summary>
         ///     similar to the method tap, it will give the value to the callable and call it and then return the value back,
         ///     useful for chaining methods on an object which has methods that return void
@@ -151,53 +145,53 @@ namespace Corium.Utils
         {
             return new[]
             {
-                (byte) ((n >> (3 * 8)) & 0xFF),
-                (byte) ((n >> (2 * 8)) & 0xFF),
-                (byte) ((n >> (1 * 8)) & 0xFF),
-                (byte) ((n >> (0 * 8)) & 0xFF)
+                (byte)((n >> (3 * 8)) & 0xFF),
+                (byte)((n >> (2 * 8)) & 0xFF),
+                (byte)((n >> (1 * 8)) & 0xFF),
+                (byte)((n >> (0 * 8)) & 0xFF)
             };
         }
 
         public static byte[] Bytes(this byte n)
         {
-            return new[] {n};
+            return new[] { n };
         }
 
         public static byte[] Bytes(this long n)
         {
             return new[]
             {
-                (byte) ((n >> (7 * 8)) & 0xFF),
-                (byte) ((n >> (6 * 8)) & 0xFF),
-                (byte) ((n >> (5 * 8)) & 0xFF),
-                (byte) ((n >> (4 * 8)) & 0xFF),
-                (byte) ((n >> (3 * 8)) & 0xFF),
-                (byte) ((n >> (2 * 8)) & 0xFF),
-                (byte) ((n >> (1 * 8)) & 0xFF),
-                (byte) ((n >> (0 * 8)) & 0xFF)
+                (byte)((n >> (7 * 8)) & 0xFF),
+                (byte)((n >> (6 * 8)) & 0xFF),
+                (byte)((n >> (5 * 8)) & 0xFF),
+                (byte)((n >> (4 * 8)) & 0xFF),
+                (byte)((n >> (3 * 8)) & 0xFF),
+                (byte)((n >> (2 * 8)) & 0xFF),
+                (byte)((n >> (1 * 8)) & 0xFF),
+                (byte)((n >> (0 * 8)) & 0xFF)
             };
         }
 
         public static long ToInt64(this byte[] b)
         {
-            return ((long) b[0] << (7 * 8)) |
-                   ((long) b[1] << (6 * 8)) |
-                   ((long) b[2] << (5 * 8)) |
-                   ((long) b[3] << (4 * 8)) |
-                   ((long) b[4] << (3 * 8)) |
-                   ((long) b[5] << (2 * 8)) |
-                   ((long) b[6] << (1 * 8)) |
-                   ((long) b[7] << (0 * 8))
+            return ((long)b[0] << (7 * 8)) |
+                   ((long)b[1] << (6 * 8)) |
+                   ((long)b[2] << (5 * 8)) |
+                   ((long)b[3] << (4 * 8)) |
+                   ((long)b[4] << (3 * 8)) |
+                   ((long)b[5] << (2 * 8)) |
+                   ((long)b[6] << (1 * 8)) |
+                   ((long)b[7] << (0 * 8))
                 ;
         }
 
         [SuppressMessage("ReSharper", "RedundantCast")]
         public static int ToInt32(this byte[] b)
         {
-            return ((int) b[0] << (3 * 8)) |
-                   ((int) b[1] << (2 * 8)) |
-                   ((int) b[2] << (1 * 8)) |
-                   ((int) b[3] << (0 * 8))
+            return ((int)b[0] << (3 * 8)) |
+                   ((int)b[1] << (2 * 8)) |
+                   ((int)b[2] << (1 * 8)) |
+                   ((int)b[3] << (0 * 8))
                 ;
         }
 

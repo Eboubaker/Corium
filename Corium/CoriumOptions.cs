@@ -13,12 +13,12 @@ namespace Corium
         {
             rootCommand.TreatUnmatchedTokensAsErrors = true;
             rootCommand.AddGlobalOption(new Option<bool>(
-                new[] {"--verbose", "-v"},
+                new[] { "--verbose", "-v" },
                 description: "Turn on verbose mode which will show more debug information..",
                 getDefaultValue: () => false));
 
             rootCommand.AddGlobalOption(new Option<bool>(
-                new[] {"--silent", "-s"},
+                new[] { "--silent", "-s" },
                 description:
                 "Turn on silent mode (no messages will appear on the console, if return code was 0 then operation was successful)..",
                 getDefaultValue: () => false));
@@ -27,20 +27,20 @@ namespace Corium
             // hide options //
 
             hideCommand.AddOption(new Option<FileSystemInfo[]>(
-                    new[] {"--images", "-i"},
+                    new[] { "--images", "-i" },
                     "The path(s) to the image(s) or directory(s) containing images that is to be used by " +
                     "Corium for hiding files.")
                 .Chain(o => o.AddValidator(ValidatePathsExist))
                 .Chain(o => o.IsRequired = true));
 
             hideCommand.AddOption(new Option<FileSystemInfo[]>(
-                    new[] {"--data", "-d"},
+                    new[] { "--data", "-d" },
                     "The path to the file(s) or directory(s) that is to be hidden inside the images.")
                 .Chain(o => o.AddValidator(ValidatePathsExist))
                 .Chain(o => o.IsRequired = true));
 
             hideCommand.AddOption(new Option<DirectoryInfo>(
-                    new[] {"--output", "-o"},
+                    new[] { "--output", "-o" },
                     () => new DirectoryInfo("processed"),
                     "The name or the path of the output directory(processed image" +
                     " collections will be dropped in this output directory)."
@@ -48,24 +48,24 @@ namespace Corium
                 .Chain(o => o.AddValidator(ValidateDirectoryIsWritable)));
 
             hideCommand.AddOption(new Option<bool>(
-                new[] {"--alpha", "-a"},
+                new[] { "--alpha", "-a" },
                 description: "Use alpha channels in the output images (increases image capacity).",
                 getDefaultValue: () => false));
 
 
             hideCommand.AddOption(new Option<int>(
-                new[] {"--bits", "-b"},
+                new[] { "--bits", "-b" },
                 description: "Set how many bits to be used (1-8) from every pixel channel default 3.",
                 getDefaultValue: () => 3));
 
 
             hideCommand.AddOption(new Option<string>(
-                    new[] {"--collection", "-c"},
+                    new[] { "--collection", "-c" },
                     description: "Set the collection number of the output images.",
                     getDefaultValue: RandomCollectionNumber)
                 .Chain(o => o.AddValidator(ValidCollectionNumber)));
             hideCommand.AddGlobalOption(new Option<bool>(
-                new[] {"--no-sub-directory", "-n"},
+                new[] { "--no-sub-directory", "-n" },
                 description: "by default processed images will be placed in a folder" +
                              " whose name is the collection name of the images" +
                              "enabling this option will disable this feature and all " +
@@ -73,39 +73,38 @@ namespace Corium
                 getDefaultValue: () => false));
             // extract options //
             extractCommand.AddOption(new Option<FileSystemInfo[]>(
-                    new[] {"--images", "-i"},
+                    new[] { "--images", "-i" },
                     "The path(s) to the image(s) or directory(s) containing images that is to be used by " +
                     "Corium to extract files.")
                 .Chain(o => o.AddValidator(ValidatePathsExist))
                 .Chain(o => o.IsRequired = true));
             extractCommand.AddOption(new Option<string>(
-                    new[] {"--collection", "-c"},
+                    new[] { "--collection", "-c" },
                     description:
-                    "(Default None) Set the target collection number to be extracted from the input images,\n" +
+                    "Set the target collection number to be extracted from the input images if the images contains more than one collection,\n" +
                     "this will cause Corium to only extract from the specified collection if it was found\n" +
-                    "if no collection number was specified corium will extract all found collections in the " +
-                    "given images directory.",
-                    getDefaultValue: () => "0")
+                    "if no collection number was specified corium will extract all found collections",
+                    getDefaultValue: () => "")
                 .Chain(o => o.AddValidator(ValidCollectionNumber)));
             extractCommand.AddOption(new Option<DirectoryInfo>(
-                    new[] {"--output", "-o"},
+                    new[] { "--output", "-o" },
                     () => new DirectoryInfo("extracted"),
-                    "(DEFAULT extracted) The name or the path of the output directory(extracted files " +
+                    "The name or the path of the output directory(extracted files " +
                     "will be dropped in this directory).")
                 .Chain(o => o.AddValidator(ValidateDirectoryIsWritable)));
 
             extractCommand.AddOption(new Option<int>(
-                new[] {"--bits", "-b"},
-                description: "(DEFAULT 3) Set how many bits to be used (1-8) from every pixel channel default 3, " +
+                new[] { "--bits", "-b" },
+                description: "Set how many bits to be used (1-8) from every pixel channel default 3, " +
                              "(must be same as when data was hidden inside images otherwise extraction will fail).",
                 getDefaultValue: () => 3));
             extractCommand.AddOption(new Option<bool>(
-                new[] {"--alpha", "-a"},
+                new[] { "--alpha", "-a" },
                 description: "(DEFAULT None) Use alpha channels in the input images (set to true if images were " +
                              "used by corium with alpha option set to true when hiding files).",
                 getDefaultValue: () => false));
             extractCommand.AddGlobalOption(new Option<bool>(
-                new[] {"--no-collection-directory", "-ncd"},
+                new[] { "--no-collection-directory", "-ncd" },
                 description: "by default extracted files will be placed in a folder whose name" +
                              " is the collection name of the images" +
                              "enabling this option will disable this feature and all collection " +

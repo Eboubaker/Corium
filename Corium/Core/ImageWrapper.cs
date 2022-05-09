@@ -13,8 +13,6 @@ namespace Corium.Core
         public readonly int Capacity;
 
         public readonly FileInfo OriginFile;
-
-        //-- lazy getters --//
         public readonly string OriginName;
         private Bitmap _bitmap;
 

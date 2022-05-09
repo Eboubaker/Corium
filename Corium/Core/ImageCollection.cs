@@ -19,7 +19,7 @@ namespace Corium.Core
             foreach (var image in collection)
             {
                 Writer.FeedBack($"processing image part {image.OriginFile.FullName}");
-                baseInfo.StoredDataLength = (int) Math.Min(remainingBytes, image.Capacity);
+                baseInfo.StoredDataLength = (int)Math.Min(remainingBytes, image.Capacity);
                 remainingBytes = Math.Max(0, remainingBytes - image.Capacity);
                 using var bitmap = image.CloneBitmap();
                 using var bits = baseInfo.GetBits().Then(Bits.OfStream(stream, baseInfo.StoredDataLength));
@@ -28,6 +28,7 @@ namespace Corium.Core
                 var path = Path.Combine(Context.OutDir.FullName, name);
                 bitmap.Save(path, Context.Codec, Context.Encoder);
                 baseInfo.ImageIndex++;
+                if (remainingBytes > 0) Writer.FeedBack($"{remainingBytes.HumanReadableSize()} Remaining");
             }
         }
 
@@ -38,11 +39,15 @@ namespace Corium.Core
         {
             var temp = new FileInfo(Path.GetTempFileName());
             var stream = temp.OpenWrite();
-            collection.Sorted((im1, im2) => im1.ReadInfo().ImageIndex - im2.ReadInfo().ImageIndex);
+            collection.Sort((im1, im2) => im1.ReadInfo().ImageIndex - im2.ReadInfo().ImageIndex);
+            long processed = 0;
             foreach (var image in collection)
                 using (image)
                 {
+                    Writer.FeedBack($"Processing image: {image.OriginFile.FullName}");
                     Bits.CopyToStream(image.OpenBitmap(), stream, image.Info.StoredDataLength);
+                    processed += image.Info.StoredDataLength;
+                    Writer.FeedBack($"{processed.HumanReadableSize()} was processed so far");
                 }
 
             stream.Close();

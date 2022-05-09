@@ -6,7 +6,7 @@ namespace Corium
 {
     /// <summary>
     /// Contains the program cli settings and other settings that depend on the cli settings
-    /// this makes the whole program context-aware of settings.
+    /// this makes the whole program settings-aware everywhere.
     /// </summary>
     public static class Context
     {
@@ -50,7 +50,7 @@ namespace Corium
             {
                 if (_encoder != null) return _encoder;
                 _encoder = new EncoderParameters(1);
-                _encoder.Param = new[] {new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L)};
+                _encoder.Param = new[] { new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L) };
                 return _encoder;
             }
         }

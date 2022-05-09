@@ -6,7 +6,7 @@
     },
     "Extract": {
       "commandName": "Project",
-      "commandLineArgs": "extract"
+      "commandLineArgs": "extract --images C:\\Users\\me\\source\\repos\\Corium\\Corium\\bin\\Debug\\netcoreapp3.1\\processed"
     }
   }
 }

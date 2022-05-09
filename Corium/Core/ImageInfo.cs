@@ -17,7 +17,7 @@ namespace Corium.Core
                 +
                 4 // data unique identifier
                 +
-                4 // tissue index
+                4 // image index
                 +
                 4 // total layers
                 +
@@ -54,7 +54,7 @@ namespace Corium.Core
             bytes.AddRange(ImageIndex.Bytes());
             bytes.AddRange(TotalImages.Bytes());
             bytes.AddRange(StoredDataLength.Bytes());
-            bytes.Add((byte) (0 | Convert.ToByte(IsCompressed)));
+            bytes.Add((byte)(0 | Convert.ToByte(IsCompressed)));
             return Bits.OfBytes(bytes);
         }
 
