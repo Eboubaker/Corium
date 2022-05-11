@@ -5,8 +5,7 @@ images.
 
 ## Installation
 
-download self-contained specific platform executable or multi-platform dotnet executable
-from [releases](https://github.com/Eboubaker/Corium/releases).
+download self-contained specific platform executable from [releases](https://github.com/Eboubaker/Corium/releases).
 
 ## Usage
 
