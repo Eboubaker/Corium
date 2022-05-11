@@ -101,7 +101,7 @@ namespace Corium.Utils
                 }
                 catch (Exception e)
                 {
-                    Writer.VerboseException(e.Message);
+                    Writer.VerboseException(e.ToString());
                     Writer.Warning($"Access to {path} was denied by the system");
                 }
 
@@ -113,7 +113,7 @@ namespace Corium.Utils
                 }
                 catch (Exception e)
                 {
-                    Writer.VerboseException(e.Message);
+                    Writer.VerboseException(e.ToString());
                     Writer.Warning($"Access to {path} was denied by the system");
                 }
 

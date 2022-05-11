@@ -62,7 +62,7 @@ namespace Corium
             catch (Exception e)
             {
                 Writer.Error("Program could not run due to unknown error");
-                Writer.VerboseException(e.Message);
+                Writer.VerboseException(e.ToString());
                 return Error.UNKNOWN;
             }
         }
@@ -95,7 +95,7 @@ namespace Corium
                 }
                 catch (Exception e)
                 {
-                    Writer.VerboseException(e.Message);
+                    Writer.VerboseException(e.ToString());
                     Writer.Error("Could not create output directory");
                     return Error.OUT_DIR_CREATE_FAIL;
                 }
@@ -117,13 +117,13 @@ namespace Corium
                     }
                     catch (OutOfMemoryException e)
                     {
-                        Writer.VerboseException(e.Message);
-                        Writer.Warning($"Unsupported Image Format in file [{f}]");
+                        Writer.VerboseException(e.ToString());
+                        Writer.Warning($"Unsupported Image Format in file [{f}] check verbose logging for details");
                     }
                     catch (Exception e)
                     {
-                        Writer.VerboseException(e.Message);
-                        Writer.Warning($"Access denied to the file [{f}]");
+                        Writer.VerboseException(e.ToString());
+                        Writer.Warning($"Failed to Access [{f}] check verbose logging for details");
                     }
                 }
             }
@@ -165,7 +165,7 @@ namespace Corium
                     }
                     catch (Exception e)
                     {
-                        Writer.VerboseException(e.Message);
+                        Writer.VerboseException(e.ToString());
                         Writer.Error($"Failed to copy item [{source}] to [{dest}]");
                         return Error.ITEM_COPY_FAIL;
                     }
@@ -261,7 +261,7 @@ namespace Corium
                         }
                         catch (Exception e)
                         {
-                            Writer.VerboseException(e.Message);
+                            Writer.VerboseException(e.ToString());
                             Writer.Error("Failed to process the images");
                             return Error.IMAGE_PROCESS_FAIL;
                         }
@@ -280,15 +280,15 @@ namespace Corium
                 }
                 catch (Exception e)
                 {
-                    Writer.VerboseException(e.Message);
+                    Writer.VerboseException(e.ToString());
                     Writer.Error("Failed to compress data");
                     return Error.DATA_COMPRESS_FAIL;
                 }
             }
             catch (Exception e)
             {
-                Writer.VerboseException(e.Message);
-                Writer.Error($"Could not create a temporary directory [{tempDir}]");
+                Writer.VerboseException(e.ToString());
+                Writer.Error($"Could not create a temporary directory [{tempDir}] check verbose logging for details");
                 return Error.TEMP_DIR_CREATE_FAIL;
             }
 
@@ -307,18 +307,18 @@ namespace Corium
                 }
                 catch (IndexOutOfRangeException e)
                 {
-                    Writer.VerboseException(e.Message);
+                    Writer.VerboseException(e.ToString());
                     Writer.Warning($"Image is too small [{f}]");
                 }
                 catch (OutOfMemoryException e)
                 {
-                    Writer.VerboseException(e.Message);
-                    Writer.Warning($"Unsupported Image Format in file [{f}]");
+                    Writer.VerboseException(e.ToString());
+                    Writer.Warning($"Unsupported Image Format in file [{f}] check verbose logging for details");
                 }
                 catch (Exception e)
                 {
-                    Writer.VerboseException(e.Message);
-                    Writer.Warning($"Access denied to the file [{f}]");
+                    Writer.VerboseException(e.ToString());
+                    Writer.Warning($"Access denied to the file [{f}] check verbose logging for details");
                 }
 
             if (images.Count == 0)
@@ -343,19 +343,19 @@ namespace Corium
                 catch (Exception e)
                 {
                     Writer.VerboseWarning(
-                        $"Error occured while trying to read image head for image [{m.OriginFile.FullName}] [{e.Message}]");
+                        $"Error occured while trying to read image head for image [{m.OriginFile.FullName}] \ne");
                     return true;
                 }
 
                 return false;
             });
-            Writer.VerboseFeedBack($"Removed {removed} non signed images");
+            Writer.VerboseFeedBack($"Removed {removed} non signed images, check verbose logging for details");
             Writer.VerboseFeedBack($"Found {images.Count} signed images");
             var imageCollections = new Dictionary<int, List<ImageWrapper>>();
             foreach (var group in images.GroupBy(e => e.Info.DataIdentifier))
             {
                 var ims = group.ToList();
-                Writer.VerboseFeedBack($"Sorting images of collection {group.Key}");
+                Writer.VerboseFeedBack($"Sorting images of collection {Convert.ToString(group.Key, 16).ToUpper()}");
                 ims.Sort((m1, m2) => m1.Info.ImageIndex - m2.Info.ImageIndex);
                 imageCollections.Add(group.Key, ims);
             }
@@ -426,7 +426,7 @@ namespace Corium
                 }
                 catch (Exception e)
                 {
-                    Writer.VerboseException(e.Message);
+                    Writer.VerboseException(e.ToString());
                     Writer.Error($"Failed to extract collection {collectionHash}\nuse verbose logging for details");
                     failed = true;
                 }

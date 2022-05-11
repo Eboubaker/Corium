@@ -81,8 +81,8 @@ namespace Corium
             extractCommand.AddOption(new Option<string>(
                     new[] { "--collection", "-c" },
                     description:
-                    "Set the target collection number to be extracted from the input images if the images contains more than one collection,\n" +
-                    "this will cause Corium to only extract from the specified collection if it was found\n" +
+                    "Set the target collection number to be extracted from the input images if the images contains more than one collection. " +
+                    "this will cause Corium to only extract from the specified collection if it was found. " +
                     "if no collection number was specified corium will extract all found collections",
                     getDefaultValue: () => "")
                 .Chain(o => o.AddValidator(ValidCollectionNumber)));
@@ -123,7 +123,7 @@ namespace Corium
             }
             catch (Exception e)
             {
-                Writer.VerboseException(e.Message);
+                Writer.VerboseException(e.ToString());
                 // ReSharper disable once StringLiteralTypo
                 return $"Expected a valid Hexadecimal number but got [{s}], " +
                        $"allowed symbols in Hex number are [ABCDEF1234567890]";
@@ -183,13 +183,13 @@ namespace Corium
                 }
                 catch (Exception e)
                 {
-                    Writer.VerboseException(e.Message);
+                    Writer.VerboseException(e.ToString());
                     return $"unable to write to directory {outDir}";
                 }
             }
             catch (Exception e)
             {
-                Writer.VerboseException(e.Message);
+                Writer.VerboseException(e.ToString());
                 // if we got an exception it probably means we can't write to that path (or path does not exist)
                 return arg.Option.Aliases.First() + ", Directory can't be created or is write-protected: " +
                        outPath;
