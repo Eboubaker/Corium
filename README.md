@@ -7,6 +7,11 @@ images.
 
 download self-contained specific platform executable from [releases](https://github.com/Eboubaker/Corium/releases).
 
+if you have docker you can try the app directly without installing anything:
+```
+docker run -it --rm -v $(pwd):/app eboubaker/corium --help
+```
+> on windows cmd change `$(pwd)` to `%cd%`
 ## Usage
 
 ```

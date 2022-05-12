@@ -17,11 +17,34 @@ namespace Corium
         public static async Task<int> Main(params string[] args)
         {
             Context.Silent = args.Count(arg => arg == "-s" || arg == "--silent") > 0;
+            Context.Dockerized = Environment.GetEnvironmentVariable("CORIUM_DOCKERIZED") != null;
             if (Context.Silent)
             {
                 Console.SetOut(TextWriter.Null);
                 Console.SetError(TextWriter.Null);
             }
+
+            if (Context.Dockerized && !Directory.Exists("/app"))
+            {
+                Writer.Error(
+                    "You must mount the current working directory to the /app volume to run Corium in Docker.\n" +
+                    "on windows:\n" +
+                    "  docker run -it --rm -v %cd%:/app eboubaker/corium\n" +
+                    "on linux:\n" +
+                    "  docker run -it --rm -v $(pwd):/app eboubaker/corium");
+                return Error.DOCKER_VOLUME_NOT_MOUNTED;
+            }
+
+            if (Context.Dockerized)
+                try
+                {
+                    Directory.SetCurrentDirectory("/app");
+                }
+                catch (Exception e)
+                {
+                    Writer.Exception(e.ToString());
+                    Writer.Error("Could not set current directory to the volume /app: " + e.Message);
+                }
 
             var rootCommand = new RootCommand("Corium is an image steganography utility " +
                                               "which allows to hide files inside images");
@@ -39,17 +62,18 @@ namespace Corium
                 collection, bits, alpha,
                 verbose, silent, noSubDirectory) =>
             {
-                RegisterGlobalOptions(verbose, alpha, bits, output, collection, noSubDirectory);
-                return RunHideOptions(images, data);
+                var r = RegisterGlobalOptions(verbose, alpha, bits, output, collection, noSubDirectory);
+                return r != 0 ? r : RunHideOptions(images, data);
             };
 
             // ReSharper disable once ConvertToLocalFunction
             Func<FileSystemInfo[], DirectoryInfo, string, int, bool, bool, bool, bool, int> extractProxy = (
                 images, output, collection,
+                // ReSharper disable once InconsistentNaming
                 bits, alpha, verbose, silent, no_collection_directory) =>
             {
-                RegisterGlobalOptions(verbose, alpha, bits, output, collection, no_collection_directory);
-                return RunExtractOptions(images);
+                var r = RegisterGlobalOptions(verbose, alpha, bits, output, collection, no_collection_directory);
+                return r != 0 ? r : RunExtractOptions(images);
             };
 
             hideCommand.Handler = CommandHandler.Create(hideProxy);
@@ -67,7 +91,7 @@ namespace Corium
             }
         }
 
-        private static void RegisterGlobalOptions(bool verbose, bool alpha, int bits, DirectoryInfo output,
+        private static int RegisterGlobalOptions(bool verbose, bool alpha, int bits, DirectoryInfo output,
             string collection, bool noCollectionDirectory)
         {
             Context.Bits = bits;
@@ -78,6 +102,7 @@ namespace Corium
             Context.CollectionString = collection.ToUpper();
             Context.OutDir = output;
             Context.NoCollectionFolder = noCollectionDirectory;
+            return 0;
         }
 
         private static int RunHideOptions(IEnumerable<FileSystemInfo> imagePaths, IEnumerable<FileSystemInfo> data)
@@ -123,7 +148,12 @@ namespace Corium
                     catch (Exception e)
                     {
                         Writer.VerboseException(e.ToString());
-                        Writer.Warning($"Failed to Access [{f}] check verbose logging for details");
+                        Writer.Warning($"Failed to read [{f}] check verbose logging for details");
+                        if (e is TypeInitializationException && e.InnerException is TypeInitializationException &&
+                            e.InnerException?.InnerException is DllNotFoundException &&
+                            e.InnerException?.InnerException?.Message.Contains("libgdiplus") == true)
+                            Writer.Error(
+                                "Could not find required library libgdiplus, please install it with \"apt-get install libgdiplus\"");
                     }
                 }
             }
@@ -453,5 +483,6 @@ namespace Corium
         public const int OUT_DIR_CREATE_FAIL = 10;
         public const int NO_COLLECTION_FOUND = 11;
         public const int COLLECTION_NOT_FOUND = 12;
+        public const int DOCKER_VOLUME_NOT_MOUNTED = 13;
     }
 }

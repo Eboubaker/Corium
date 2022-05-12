@@ -22,6 +22,11 @@ namespace Corium
         public static bool Alpha { get; set; }
         public static int ChannelCount { get; set; }
 
+        /// <summary>
+        ///     is corium running inside docker?
+        /// </summary>
+        public static bool Dockerized { get; set; }
+
         //--- Lazy getters ---//
         public static PixelFormat PixelFormat => Alpha ? PixelFormat.Format32bppArgb : PixelFormat.Format32bppRgb;
         public static string OutExtension => Alpha ? "png" : "jpg";
