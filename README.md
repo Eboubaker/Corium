@@ -1,5 +1,4 @@
 ﻿# Corium
-
 Corium is an image [steganography](https://en.wikipedia.org/wiki/Steganography) utility which can hide files inside
 images.
 
@@ -11,7 +10,8 @@ if you have docker you can try the app directly without installing anything:
 ```
 docker run -it --rm -v $(pwd):/app eboubaker/corium --help
 ```
-> on windows cmd change `$(pwd)` to `%cd%`
+> !> on windows cmd change `$(pwd)` to `%cd%`.  
+> !> images and files to be used must be on the terminal working directory to be visible by the container.
 ## Usage
 
 ```
@@ -103,3 +103,20 @@ Download this image and extract the files with corium.
 wget -O source-code.jpg https://raw.githubusercontent.com/Eboubaker/Corium/main/source-code.jpg
 corium --verbose extract --images source-code.jpg
 ```
+
+## How does it work.
+Corium will take the bits of the file and insert them to the image's pixel channels by default 3 bits per channel.  
+For example lets say the data we want to hide is 1 byte and represented as:   
+`1001 0111`   
+and lets say the original image is 1 pixel its color is rgb(252, 186, 3) ![#fcba03](https://img.shields.io/static/v1?label=&color=fcba03&message=+)`#fcba03` so it has 3 channels, each channel is represnted as 1 byte and we would have 3 bytes:  
+`1111 1100` `1011 1010` `0000 0011`  
+By default corium will use 3 bits per channel this can be changed with `--bits` option.  
+Now when we want to insert the previous data we will drop 3 bits from each channel and replace them with our data.
+
+so from our example we will take the data from left-to-right and put them in the channels the final result will be:   
+`1111 1100` `1011 1101` `0000 0110` and the new pixel color will be rgb(252, 189, 6) ![#fcbd06](https://img.shields.io/static/v1?label=&color=fcbd06&message=+)`#fcbd06`
+when extracting corium will take the last 3 bits of each channel and construct the byte from them. `100` `101` `11`.  
+corium knows the size of the data so it will not include the last bit. this is done by appending metadata to the file bytes before inserting.  
+here are the two colors next to each other ![#fcba03](https://img.shields.io/static/v1?label=&color=fcba03&message=+) ![#fcbd06](https://img.shields.io/static/v1?label=&color=fcbd06&message=+) as you can see the change is very hard to see by the human eye especially when it is a full image
+
+  
