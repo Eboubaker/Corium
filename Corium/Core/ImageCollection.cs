@@ -26,6 +26,16 @@ namespace Corium.Core
                 Bits.WriteToImage(bits, bitmap);
                 var name = image.FileName(Context.OutExtension);
                 var path = Path.Combine(Context.OutDir.FullName, name);
+                if (File.Exists(path))
+                {
+                    var n = 0;
+                    do
+                    {
+                        n++;
+                        path = Path.Combine(Context.OutDir.FullName, name + " (" + n + ")");
+                    } while (File.Exists(path));
+                }
+
                 bitmap.Save(path, Context.Codec, Context.Encoder);
                 baseInfo.ImageIndex++;
                 if (remainingBytes > 0) Writer.FeedBack($"{remainingBytes.HumanReadableSize()} Remaining");
