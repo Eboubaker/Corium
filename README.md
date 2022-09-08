@@ -119,4 +119,5 @@ when extracting corium will take the last 3 bits of each channel and construct t
 corium knows the size of the data so it will not include the last bit. this is done by appending metadata to the file bytes before inserting.  
 here are the two colors next to each other ![#fcba03](https://img.shields.io/static/v1?label=&color=fcba03&message=+) ![#fcbd06](https://img.shields.io/static/v1?label=&color=fcbd06&message=+) as you can see the change is very hard to see by the human eye especially when it is a full image
 
-  
+## The Name
+The program is named after the skin layer [Corium](https://en.wikipedia.org/wiki/Dermis) which is the middle layer in the skin. Which means to hide something between layers. like how this program works.
